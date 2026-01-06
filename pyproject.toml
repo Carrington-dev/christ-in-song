@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "christ-in-song"
+version = "1.0.0"
+description = "Christ In Song Hymnal desktop application for Windows, macOS, and Linux"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Carrington Muleya", email = "carrington.muleya@outlook.com"}
+]
+keywords = ["hymnal", "church", "music", "worship", "christ-in-song"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Religion",
+]
+
+dependencies = [
+    "PySide6>=6.6.0",
+    "qtawesome>=1.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-qt>=4.2.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "pyinstaller>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/carrington-dev/christ-in-song"
+Repository = "https://github.com/carrington-dev/christ-in-song"
+Issues = "https://github.com/carrington-dev/christ-in-song/issues"
+
+[project.scripts]
+christ-in-song = "christ_in_song.main:main"
+
+[tool.setuptools]
+packages = ["christ_in_song"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+christ_in_song = ["resources/**/*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
