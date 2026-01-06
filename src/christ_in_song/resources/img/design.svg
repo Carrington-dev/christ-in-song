@@ -1,0 +1,235 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1400" height="900" fill="#f8f9fa"/>
+  
+  <!-- Main Application Window -->
+  <g id="main-window">
+    <!-- Window Frame -->
+    <rect x="50" y="50" width="1300" height="800" rx="8" fill="#ffffff" stroke="#dee2e6" stroke-width="2"/>
+    
+    <!-- Title Bar -->
+    <rect x="50" y="50" width="1300" height="60" rx="8" fill="#2c3e50"/>
+    <rect x="50" y="102" width="1300" height="8" fill="#34495e"/>
+    
+    <!-- App Title -->
+    <text x="80" y="88" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff">
+      🎵 Christ In Song Hymnal
+    </text>
+    
+    <!-- Window Controls -->
+    <circle cx="1310" cy="80" r="8" fill="#e74c3c"/>
+    <circle cx="1280" cy="80" r="8" fill="#f39c12"/>
+    <circle cx="1250" cy="80" r="8" fill="#27ae60"/>
+    
+    <!-- Sidebar -->
+    <rect x="50" y="110" width="300" height="690" fill="#ecf0f1"/>
+    
+    <!-- Sidebar Header -->
+    <text x="80" y="150" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2c3e50">
+      Navigation
+    </text>
+    
+    <!-- Search Box -->
+    <rect x="70" y="170" width="260" height="40" rx="20" fill="#ffffff" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="90" y="195" font-family="Arial, sans-serif" font-size="14" fill="#7f8c8d">
+      🔍 Search hymns...
+    </text>
+    
+    <!-- Navigation Items -->
+    <g id="nav-items">
+      <!-- Home -->
+      <rect x="70" y="230" width="260" height="45" rx="6" fill="#3498db"/>
+      <text x="100" y="258" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">
+        🏠 Home
+      </text>
+      
+      <!-- Browse All -->
+      <rect x="70" y="285" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="313" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        📚 Browse All Hymns
+      </text>
+      
+      <!-- Favorites -->
+      <rect x="70" y="340" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="368" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        ⭐ Favorites
+      </text>
+      
+      <!-- Recent -->
+      <rect x="70" y="395" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="423" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        🕐 Recently Viewed
+      </text>
+      
+      <!-- Categories -->
+      <rect x="70" y="450" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="478" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        🗂️ Categories
+      </text>
+      
+      <!-- Number Pad -->
+      <rect x="70" y="505" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="533" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        🎹 Number Dialpad
+      </text>
+    </g>
+    
+    <!-- Sidebar Footer -->
+    <g id="sidebar-footer">
+      <line x1="70" y1="720" x2="330" y2="720" stroke="#bdc3c7" stroke-width="1"/>
+      
+      <!-- Settings -->
+      <rect x="70" y="735" width="260" height="45" rx="6" fill="#ffffff"/>
+      <text x="100" y="763" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50">
+        ⚙️ Settings
+      </text>
+    </g>
+    
+    <!-- Main Content Area -->
+    <rect x="350" y="110" width="1000" height="690" fill="#ffffff"/>
+    
+    <!-- Hymn Display Header -->
+    <rect x="370" y="130" width="960" height="60" rx="6" fill="#ecf0f1"/>
+    
+    <!-- Hymn Number Badge -->
+    <circle cx="410" cy="160" r="25" fill="#3498db"/>
+    <text x="410" y="168" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">
+      1
+    </text>
+    
+    <!-- Hymn Title -->
+    <text x="450" y="155" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#2c3e50">
+      Holy, Holy, Holy
+    </text>
+    
+    <!-- Hymn Metadata -->
+    <text x="450" y="178" font-family="Arial, sans-serif" font-size="12" fill="#7f8c8d">
+      Reginald Heber, 1826 • John B. Dykes, 1861
+    </text>
+    
+    <!-- Action Buttons -->
+    <g id="action-buttons">
+      <!-- Favorite Button -->
+      <rect x="1180" y="140" width="60" height="40" rx="6" fill="#f39c12"/>
+      <text x="1210" y="166" font-family="Arial, sans-serif" font-size="20" fill="#ffffff" text-anchor="middle">
+        ⭐
+      </text>
+      
+      <!-- Print Button -->
+      <rect x="1250" y="140" width="60" height="40" rx="6" fill="#95a5a6"/>
+      <text x="1280" y="166" font-family="Arial, sans-serif" font-size="20" fill="#ffffff" text-anchor="middle">
+        🖨️
+      </text>
+    </g>
+    
+    <!-- Hymn Content Area -->
+    <rect x="370" y="210" width="960" height="490" rx="6" fill="#ffffff" stroke="#dee2e6" stroke-width="1"/>
+    
+    <!-- Verse 1 -->
+    <text x="400" y="245" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#2c3e50">
+      Verse 1:
+    </text>
+    <text x="400" y="270" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Holy, holy, holy! Lord God Almighty!
+    </text>
+    <text x="400" y="290" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Early in the morning our song shall rise to Thee;
+    </text>
+    <text x="400" y="310" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Holy, holy, holy! Merciful and mighty!
+    </text>
+    <text x="400" y="330" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      God in three Persons, blessed Trinity!
+    </text>
+    
+    <!-- Verse 2 -->
+    <text x="400" y="370" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#2c3e50">
+      Verse 2:
+    </text>
+    <text x="400" y="395" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Holy, holy, holy! All the saints adore Thee,
+    </text>
+    <text x="400" y="415" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Casting down their golden crowns around the glassy sea;
+    </text>
+    <text x="400" y="435" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Cherubim and seraphim falling down before Thee,
+    </text>
+    <text x="400" y="455" font-family="Georgia, serif" font-size="14" fill="#34495e">
+      Which wert, and art, and evermore shalt be.
+    </text>
+    
+    <!-- More verses indicator -->
+    <text x="400" y="495" font-family="Georgia, serif" font-size="14" fill="#7f8c8d" font-style="italic">
+      [Verses 3-4 continue...]
+    </text>
+    
+    <!-- Navigation Controls -->
+    <g id="nav-controls">
+      <!-- Previous Button -->
+      <rect x="370" y="720" width="120" height="45" rx="6" fill="#3498db"/>
+      <text x="430" y="748" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">
+        ← Previous
+      </text>
+      
+      <!-- Hymn Counter -->
+      <rect x="510" y="720" width="380" height="45" rx="6" fill="#ecf0f1"/>
+      <text x="700" y="748" font-family="Arial, sans-serif" font-size="14" fill="#2c3e50" text-anchor="middle">
+        Hymn 1 of 695
+      </text>
+      
+      <!-- Next Button -->
+      <rect x="910" y="720" width="120" height="45" rx="6" fill="#3498db"/>
+      <text x="970" y="748" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">
+        Next →
+      </text>
+      
+      <!-- Font Size Controls -->
+      <rect x="1050" y="720" width="60" height="45" rx="6" fill="#95a5a6"/>
+      <text x="1080" y="748" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        A-
+      </text>
+      
+      <rect x="1120" y="720" width="60" height="45" rx="6" fill="#95a5a6"/>
+      <text x="1150" y="748" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">
+        A+
+      </text>
+      
+      <!-- Presentation Mode -->
+      <rect x="1190" y="720" width="140" height="45" rx="6" fill="#e74c3c"/>
+      <text x="1260" y="748" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">
+        🖥️ Present
+      </text>
+    </g>
+    
+    <!-- Status Bar -->
+    <rect x="50" y="810" width="1300" height="40" fill="#34495e"/>
+    <text x="70" y="835" font-family="Arial, sans-serif" font-size="12" fill="#ecf0f1">
+      Ready • Database connected • 695 hymns available
+    </text>
+    
+    <!-- Version Info -->
+    <text x="1320" y="835" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6" text-anchor="end">
+      v1.0.0
+    </text>
+  </g>
+  
+  <!-- Design Annotations -->
+  <g id="annotations" opacity="0.7">
+    <!-- Color Palette -->
+    <rect x="10" y="860" width="30" height="30" fill="#3498db"/>
+    <text x="45" y="880" font-family="Arial, sans-serif" font-size="11" fill="#2c3e50">Primary Blue</text>
+    
+    <rect x="150" y="860" width="30" height="30" fill="#2c3e50"/>
+    <text x="185" y="880" font-family="Arial, sans-serif" font-size="11" fill="#2c3e50">Dark Text</text>
+    
+    <rect x="280" y="860" width="30" height="30" fill="#ecf0f1"/>
+    <text x="315" y="880" font-family="Arial, sans-serif" font-size="11" fill="#2c3e50">Light BG</text>
+    
+    <rect x="410" y="860" width="30" height="30" fill="#e74c3c"/>
+    <text x="445" y="880" font-family="Arial, sans-serif" font-size="11" fill="#2c3e50">Accent Red</text>
+    
+    <rect x="540" y="860" width="30" height="30" fill="#f39c12"/>
+    <text x="575" y="880" font-family="Arial, sans-serif" font-size="11" fill="#2c3e50">Accent Orange</text>
+  </g>
+</svg>
