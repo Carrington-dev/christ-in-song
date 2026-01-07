@@ -1,329 +1,607 @@
 """
-Main application window with plain text rendering and database support
+Main application window with complete UI implementation
 """
-from PySide6.QtWidgets import (QMainWindow, QLabel, QVBoxLayout, QWidget, 
-                                QPushButton, QHBoxLayout, QPlainTextEdit)
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QPushButton, QTextEdit, QLineEdit, QScrollArea, QFrame,
+    QSizePolicy, QSpacerItem
+)
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QFont, QIcon, QPalette, QColor
 from christ_in_song.config import Config
 import re
 import html
 
 
+class ModernButton(QPushButton):
+    """Custom styled button with hover effects"""
+    
+    def __init__(self, text, icon="", color="#3498db", parent=None):
+        super().__init__(text, parent)
+        self.default_color = color
+        self.hover_color = self._darken_color(color)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._update_style()
+    
+    def _darken_color(self, color):
+        """Darken a color by 15% for hover effect"""
+        color_map = {
+            "#3498db": "#2980b9",
+            "#e74c3c": "#c0392b",
+            "#f39c12": "#e67e22",
+            "#95a5a6": "#7f8c8d",
+            "#27ae60": "#229954",
+            "#ffffff": "#ecf0f1"
+        }
+        return color_map.get(color, color)
+    
+    def _update_style(self):
+        """Update button stylesheet"""
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.default_color};
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 600;
+            }}
+            QPushButton:hover {{
+                background-color: {self.hover_color};
+            }}
+            QPushButton:pressed {{
+                background-color: {self._darken_color(self.hover_color)};
+            }}
+        """)
+
+
+class NavButton(QPushButton):
+    """Navigation sidebar button"""
+    
+    def __init__(self, text, icon="", parent=None):
+        super().__init__(f"{icon} {text}", parent)
+        self.is_active = False
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._update_style()
+    
+    def set_active(self, active):
+        """Set button active state"""
+        self.is_active = active
+        self._update_style()
+    
+    def _update_style(self):
+        """Update button stylesheet"""
+        if self.is_active:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: #3498db;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 12px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-align: left;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: white;
+                    color: #2c3e50;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 12px 20px;
+                    font-size: 14px;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: #e8f4f8;
+                }
+            """)
+
+
 class MainWindow(QMainWindow):
-    """Main application window"""
+    """Main application window with complete UI"""
+    
+    # Signals
+    hymn_changed = Signal(int)
     
     def __init__(self, db_manager=None):
-        """
-        Initialize the main window
-        
-        Args:
-            db_manager: DatabaseManager instance (optional)
-        """
+        """Initialize the main window"""
         super().__init__()
         self.db_manager = db_manager
+        self.current_hymn = 1
+        self.total_hymns = 695
+        self.font_size = 14
+        
         self.init_ui()
     
     def init_ui(self):
-        """Initialize the user interface"""
+        """Initialize the complete user interface"""
         self.setWindowTitle(f"{Config.APP_NAME} v{Config.VERSION}")
-        self.setGeometry(100, 100, Config.DEFAULT_WINDOW_WIDTH, Config.DEFAULT_WINDOW_HEIGHT)
+        self.setGeometry(100, 50, 1300, 900)
+        
+        # Set window icon if available
+        # icon_path = Config.get_resource_path("icons/app_icon.ico")
+        # if icon_path.exists():
+        #     self.setWindowIcon(QIcon(str(icon_path)))
         
         # Create central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
-        # Create main layout
-        layout = QVBoxLayout()
-        central_widget.setLayout(layout)
+        # Main layout
+        main_layout = QHBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         
-        # Add header
-        header_label = QLabel("🎵 Christ In Song Hymnal")
-        header_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_label.setStyleSheet("""
-            QLabel {
-                font-size: 24px;
-                font-weight: bold;
-                padding: 20px;
-                color: #2c3e50;
-                background: #ecf0f1;
-                border-radius: 8px;
-                margin: 10px;
+        # Create sidebar and main content
+        sidebar = self.create_sidebar()
+        main_content = self.create_main_content()
+        
+        main_layout.addWidget(sidebar)
+        main_layout.addWidget(main_content)
+        
+        # Create status bar
+        self.create_status_bar()
+        
+        # Apply global styles
+        self.apply_styles()
+    
+    def create_sidebar(self):
+        """Create the navigation sidebar"""
+        sidebar = QFrame()
+        sidebar.setFixedWidth(300)
+        sidebar.setStyleSheet("""
+            QFrame {
+                background-color: #ecf0f1;
+                border-right: 1px solid #bdc3c7;
             }
         """)
-        layout.addWidget(header_label)
         
-        # Create hymn display area using QPlainTextEdit for pure text
-        self.hymn_content = QPlainTextEdit()
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(10)
+        
+        # Header
+        header = QLabel("Navigation")
+        header.setStyleSheet("""
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 10px 0;
+        """)
+        layout.addWidget(header)
+        
+        # Search box
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText("🔍 Search hymns...")
+        self.search_box.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                border: 1px solid #bdc3c7;
+                border-radius: 20px;
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+            }
+        """)
+        self.search_box.returnPressed.connect(self.on_search)
+        layout.addWidget(self.search_box)
+        
+        layout.addSpacing(10)
+        
+        # Navigation buttons
+        self.nav_buttons = {}
+        
+        nav_items = [
+            ("home", "🏠 Home", True),
+            ("browse", "📚 Browse All Hymns", False),
+            ("favorites", "⭐ Favorites", False),
+            ("recent", "🕐 Recently Viewed", False),
+            ("categories", "🗂️ Categories", False),
+            ("dialpad", "🎹 Number Dialpad", False),
+        ]
+        
+        for key, text, is_active in nav_items:
+            btn = NavButton(text)
+            btn.set_active(is_active)
+            btn.clicked.connect(lambda checked, k=key: self.on_nav_click(k))
+            self.nav_buttons[key] = btn
+            layout.addWidget(btn)
+        
+        # Spacer
+        layout.addStretch()
+        
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setStyleSheet("background-color: #bdc3c7;")
+        layout.addWidget(separator)
+        
+        # Settings button
+        settings_btn = NavButton("⚙️ Settings")
+        settings_btn.clicked.connect(self.on_settings_click)
+        layout.addWidget(settings_btn)
+        
+        return sidebar
+    
+    def create_main_content(self):
+        """Create the main content area"""
+        main_widget = QWidget()
+        layout = QVBoxLayout(main_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        
+        # Hymn header
+        header = self.create_hymn_header()
+        layout.addWidget(header)
+        
+        # Hymn content area
+        content = self.create_hymn_content()
+        layout.addWidget(content, 1)
+        
+        # Navigation controls
+        controls = self.create_nav_controls()
+        layout.addWidget(controls)
+        
+        return main_widget
+    
+    def create_hymn_header(self):
+        """Create hymn display header"""
+        header_widget = QFrame()
+        header_widget.setStyleSheet("""
+            QFrame {
+                background-color: #ecf0f1;
+                border-bottom: 1px solid #bdc3c7;
+            }
+        """)
+        header_widget.setFixedHeight(80)
+        
+        layout = QHBoxLayout(header_widget)
+        layout.setContentsMargins(20, 10, 20, 10)
+        
+        # Hymn number badge
+        self.hymn_badge = QLabel("1")
+        self.hymn_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hymn_badge.setFixedSize(50, 50)
+        self.hymn_badge.setStyleSheet("""
+            QLabel {
+                background-color: #3498db;
+                color: white;
+                border-radius: 25px;
+                font-size: 18px;
+                font-weight: bold;
+            }
+        """)
+        layout.addWidget(self.hymn_badge)
+        
+        # Title and metadata
+        title_layout = QVBoxLayout()
+        title_layout.setSpacing(5)
+        
+        self.hymn_title = QLabel("Holy, Holy, Holy")
+        self.hymn_title.setStyleSheet("""
+            font-family: Georgia, serif;
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+        """)
+        title_layout.addWidget(self.hymn_title)
+        
+        self.hymn_metadata = QLabel("Reginald Heber, 1826 • John B. Dykes, 1861")
+        self.hymn_metadata.setStyleSheet("""
+            font-size: 12px;
+            color: #7f8c8d;
+        """)
+        title_layout.addWidget(self.hymn_metadata)
+        
+        layout.addLayout(title_layout)
+        layout.addStretch()
+        
+        # Action buttons
+        self.fav_btn = ModernButton("⭐", color="#f39c12")
+        self.fav_btn.setFixedSize(50, 40)
+        self.fav_btn.setToolTip("Add to Favorites")
+        self.fav_btn.clicked.connect(self.toggle_favorite)
+        layout.addWidget(self.fav_btn)
+        
+        self.print_btn = ModernButton("🖨️", color="#95a5a6")
+        self.print_btn.setFixedSize(50, 40)
+        self.print_btn.setToolTip("Print Hymn")
+        self.print_btn.clicked.connect(self.print_hymn)
+        layout.addWidget(self.print_btn)
+        
+        return header_widget
+    
+    def create_hymn_content(self):
+        """Create hymn content display area"""
+        # Scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: white;
+            }
+        """)
+        
+        # Content widget
+        content_widget = QWidget()
+        layout = QVBoxLayout(content_widget)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
+        
+        # Text display
+        self.hymn_content = QTextEdit()
         self.hymn_content.setReadOnly(True)
+        self.hymn_content.setFrameShape(QFrame.Shape.NoFrame)
         
-        # Set font for hymn content
-        font = QFont("Segoe UI", 12)
+        font = QFont("Georgia", self.font_size)
         self.hymn_content.setFont(font)
         
-        # Style the text edit
         self.hymn_content.setStyleSheet("""
-            QPlainTextEdit {
-                border: 1px solid #bdc3c7;
-                border-radius: 4px;
-                padding: 15px;
-                background: white;
+            QTextEdit {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                padding: 20px;
                 line-height: 1.6;
             }
         """)
         
-        # Add sample hymn text
+        # Load sample hymn
         self.display_sample_hymn()
         
         layout.addWidget(self.hymn_content)
+        scroll.setWidget(content_widget)
         
-        # Add control buttons
-        button_layout = QHBoxLayout()
-        
-        test_btn = QPushButton("Load Test Hymn")
-        test_btn.clicked.connect(self.display_sample_hymn)
-        test_btn.setStyleSheet("""
-            QPushButton {
-                background: #3498db;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background: #2980b9;
+        return scroll
+    
+    def create_nav_controls(self):
+        """Create navigation controls"""
+        control_widget = QFrame()
+        control_widget.setStyleSheet("""
+            QFrame {
+                background-color: white;
+                border-top: 1px solid #dee2e6;
             }
         """)
-        button_layout.addWidget(test_btn)
+        control_widget.setFixedHeight(70)
         
-        test_html_btn = QPushButton("Test HTML Input")
-        test_html_btn.clicked.connect(self.display_html_test)
-        test_html_btn.setStyleSheet("""
-            QPushButton {
-                background: #e74c3c;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
+        layout = QHBoxLayout(control_widget)
+        layout.setContentsMargins(20, 10, 20, 10)
+        layout.setSpacing(10)
+        
+        # Previous button
+        prev_btn = ModernButton("← Previous")
+        prev_btn.setFixedWidth(120)
+        prev_btn.clicked.connect(self.previous_hymn)
+        layout.addWidget(prev_btn)
+        
+        # Hymn counter
+        self.hymn_counter = QLabel(f"Hymn {self.current_hymn} of {self.total_hymns}")
+        self.hymn_counter.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hymn_counter.setStyleSheet("""
+            QLabel {
+                background-color: #ecf0f1;
+                border-radius: 6px;
+                padding: 12px 30px;
                 font-size: 14px;
-            }
-            QPushButton:hover {
-                background: #c0392b;
+                color: #2c3e50;
             }
         """)
-        button_layout.addWidget(test_html_btn)
+        layout.addWidget(self.hymn_counter, 1)
         
-        clear_btn = QPushButton("Clear")
-        clear_btn.clicked.connect(self.hymn_content.clear)
-        clear_btn.setStyleSheet("""
-            QPushButton {
-                background: #95a5a6;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background: #7f8c8d;
+        # Next button
+        next_btn = ModernButton("Next →")
+        next_btn.setFixedWidth(120)
+        next_btn.clicked.connect(self.next_hymn)
+        layout.addWidget(next_btn)
+        
+        # Font size controls
+        font_down = ModernButton("A-", color="#95a5a6")
+        font_down.setFixedSize(50, 45)
+        font_down.setToolTip("Decrease Font Size")
+        font_down.clicked.connect(self.decrease_font)
+        layout.addWidget(font_down)
+        
+        font_up = ModernButton("A+", color="#95a5a6")
+        font_up.setFixedSize(50, 45)
+        font_up.setToolTip("Increase Font Size")
+        font_up.clicked.connect(self.increase_font)
+        layout.addWidget(font_up)
+        
+        # Presentation mode
+        present_btn = ModernButton("🖥️ Present", color="#e74c3c")
+        present_btn.setFixedWidth(140)
+        present_btn.clicked.connect(self.enter_presentation_mode)
+        layout.addWidget(present_btn)
+        
+        return control_widget
+    
+    def create_status_bar(self):
+        """Create status bar"""
+        status = self.statusBar()
+        status.setStyleSheet("""
+            QStatusBar {
+                background-color: #34495e;
+                color: #ecf0f1;
+                font-size: 12px;
+                padding: 5px;
             }
         """)
-        button_layout.addWidget(clear_btn)
         
-        layout.addLayout(button_layout)
-        
-        # Add status bar
         db_status = "Database connected" if self.db_manager else "Database stub mode"
-        self.statusBar().showMessage(f"Ready - {db_status} - Plain text mode active")
+        status.showMessage(f"Ready • {db_status} • {self.total_hymns} hymns available")
+        
+        # Version label
+        version_label = QLabel(f"v{Config.VERSION}")
+        version_label.setStyleSheet("color: #95a5a6;")
+        status.addPermanentWidget(version_label)
+    
+    def apply_styles(self):
+        """Apply global application styles"""
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: white;
+            }
+        """)
+    
+    # Event handlers
+    def on_nav_click(self, key):
+        """Handle navigation button click"""
+        # Update active state
+        for k, btn in self.nav_buttons.items():
+            btn.set_active(k == key)
+        
+        # Handle navigation
+        if key == "home":
+            self.statusBar().showMessage("Home view")
+        elif key == "browse":
+            self.statusBar().showMessage("Browse all hymns")
+        elif key == "favorites":
+            self.statusBar().showMessage("Favorites view")
+        elif key == "recent":
+            self.statusBar().showMessage("Recently viewed hymns")
+        elif key == "categories":
+            self.statusBar().showMessage("Categories view")
+        elif key == "dialpad":
+            self.show_dialpad()
+    
+    def on_search(self):
+        """Handle search"""
+        query = self.search_box.text()
+        if query:
+            self.statusBar().showMessage(f"Searching for: {query}")
+    
+    def on_settings_click(self):
+        """Open settings"""
+        self.statusBar().showMessage("Settings panel")
+    
+    def previous_hymn(self):
+        """Go to previous hymn"""
+        if self.current_hymn > 1:
+            self.current_hymn -= 1
+            self.update_hymn_display()
+    
+    def next_hymn(self):
+        """Go to next hymn"""
+        if self.current_hymn < self.total_hymns:
+            self.current_hymn += 1
+            self.update_hymn_display()
+    
+    def update_hymn_display(self):
+        """Update hymn display"""
+        self.hymn_badge.setText(str(self.current_hymn))
+        self.hymn_counter.setText(f"Hymn {self.current_hymn} of {self.total_hymns}")
+        self.statusBar().showMessage(f"Displaying Hymn #{self.current_hymn}")
+        self.hymn_changed.emit(self.current_hymn)
+    
+    def increase_font(self):
+        """Increase font size"""
+        if self.font_size < 24:
+            self.font_size += 2
+            self.hymn_content.setFont(QFont("Georgia", self.font_size))
+            self.statusBar().showMessage(f"Font size: {self.font_size}pt")
+    
+    def decrease_font(self):
+        """Decrease font size"""
+        if self.font_size > 10:
+            self.font_size -= 2
+            self.hymn_content.setFont(QFont("Georgia", self.font_size))
+            self.statusBar().showMessage(f"Font size: {self.font_size}pt")
+    
+    def toggle_favorite(self):
+        """Toggle favorite status"""
+        self.statusBar().showMessage(f"Hymn #{self.current_hymn} added to favorites")
+    
+    def print_hymn(self):
+        """Print current hymn"""
+        self.statusBar().showMessage(f"Printing Hymn #{self.current_hymn}")
+    
+    def enter_presentation_mode(self):
+        """Enter presentation mode"""
+        self.statusBar().showMessage("Entering presentation mode...")
+        # TODO: Implement presentation mode window
+    
+    def show_dialpad(self):
+        """Show number dialpad"""
+        self.statusBar().showMessage("Opening number dialpad...")
+        # TODO: Implement dialpad dialog
     
     def display_sample_hymn(self):
-        """Display a sample hymn in plain text format"""
-        sample_text = """Hymn #1: Holy, Holy, Holy
-
-Verse 1:
-Holy, holy, holy! Lord God Almighty!
-Early in the morning our song shall rise to Thee;
-Holy, holy, holy! Merciful and mighty!
+        """Display a sample hymn"""
+        sample_text = """<div style="font-family: Georgia; line-height: 1.8;">
+<p style="font-weight: bold; font-size: 16px; color: #2c3e50;">Verse 1:</p>
+<p style="color: #34495e;">
+Holy, holy, holy! Lord God Almighty!<br>
+Early in the morning our song shall rise to Thee;<br>
+Holy, holy, holy! Merciful and mighty!<br>
 God in three Persons, blessed Trinity!
+</p>
 
-Verse 2:
-Holy, holy, holy! All the saints adore Thee,
-Casting down their golden crowns around the glassy sea;
-Cherubim and seraphim falling down before Thee,
+<p style="font-weight: bold; font-size: 16px; color: #2c3e50; margin-top: 20px;">Verse 2:</p>
+<p style="color: #34495e;">
+Holy, holy, holy! All the saints adore Thee,<br>
+Casting down their golden crowns around the glassy sea;<br>
+Cherubim and seraphim falling down before Thee,<br>
 Which wert, and art, and evermore shalt be.
+</p>
 
-Verse 3:
-Holy, holy, holy! Though the darkness hide Thee,
-Though the eye of sinful man Thy glory may not see,
-Only Thou art holy; there is none beside Thee
+<p style="font-weight: bold; font-size: 16px; color: #2c3e50; margin-top: 20px;">Verse 3:</p>
+<p style="color: #34495e;">
+Holy, holy, holy! Though the darkness hide Thee,<br>
+Though the eye of sinful man Thy glory may not see,<br>
+Only Thou art holy; there is none beside Thee<br>
 Perfect in power, in love, and purity.
+</p>
 
-Verse 4:
-Holy, holy, holy! Lord God Almighty!
-All Thy works shall praise Thy name in earth and sky and sea;
-Holy, holy, holy! Merciful and mighty!
+<p style="font-weight: bold; font-size: 16px; color: #2c3e50; margin-top: 20px;">Verse 4:</p>
+<p style="color: #34495e;">
+Holy, holy, holy! Lord God Almighty!<br>
+All Thy works shall praise Thy name in earth and sky and sea;<br>
+Holy, holy, holy! Merciful and mighty!<br>
 God in three Persons, blessed Trinity!
-
-Author: Reginald Heber, 1826
-Composer: John B. Dykes, 1861
-"""
-        self.hymn_content.setPlainText(sample_text)
-        self.statusBar().showMessage("Sample hymn loaded")
-    
-    def display_html_test(self):
-        """Test displaying HTML content as plain text"""
-        html_content = """<h1>Hymn #123</h1>
-<p><strong>Title:</strong> Amazing Grace</p>
-<div class="verse">
-<p>Amazing grace! How sweet the sound<br/>
-That saved a wretch like me!<br/>
-I once was lost, but now am found;<br/>
-Was blind, but now I see.</p>
-</div>
-<p><em>Author:</em> John Newton &amp; more &lt;tags&gt;</p>"""
-        
-        # Clean and display
-        cleaned = self.clean_html_to_text(html_content)
-        self.hymn_content.setPlainText(f"--- HTML INPUT CLEANED ---\n\n{cleaned}")
-        self.statusBar().showMessage("HTML tags stripped successfully")
+</p>
+</div>"""
+        self.hymn_content.setHtml(sample_text)
     
     def display_hymn(self, hymn_data: dict):
-        """
-        Display hymn data in a safe, readable format
+        """Display hymn data"""
+        self.current_hymn = hymn_data.get('number', 1)
+        self.hymn_badge.setText(str(self.current_hymn))
+        self.hymn_title.setText(hymn_data.get('title', 'Unknown'))
         
-        Args:
-            hymn_data: Dictionary containing hymn information
-                - number: Hymn number
-                - title: Hymn title
-                - verses: List of verse texts or HTML content
-                - author: Author name (optional)
-                - composer: Composer name (optional)
-                - chorus: Chorus text (optional)
-                - year: Year (optional)
-        """
-        lines = []
+        author = hymn_data.get('author', '')
+        composer = hymn_data.get('composer', '')
+        year = hymn_data.get('year', '')
         
-        # Add title and number
-        title = self.clean_html_to_text(hymn_data.get('title', 'Unknown'))
-        lines.append(f"Hymn #{hymn_data.get('number', 'N/A')}: {title}")
-        lines.append("")
+        metadata_parts = []
+        if author:
+            metadata_parts.append(author)
+        if composer:
+            metadata_parts.append(composer)
+        if year:
+            metadata_parts[-1] += f", {year}"
         
-        # Add verses
+        self.hymn_metadata.setText(" • ".join(metadata_parts))
+        
+        # Format verses
         verses = hymn_data.get('verses', [])
+        html_content = '<div style="font-family: Georgia; line-height: 1.8;">'
+        
         for i, verse in enumerate(verses, 1):
-            lines.append(f"Verse {i}:")
-            # Clean the verse text (remove HTML tags if any)
-            clean_verse = self.clean_html_to_text(verse)
-            lines.append(clean_verse)
-            lines.append("")
+            html_content += f'''
+<p style="font-weight: bold; font-size: 16px; color: #2c3e50; margin-top: 20px;">Verse {i}:</p>
+<p style="color: #34495e;">{verse.replace(chr(10), '<br>')}</p>
+'''
         
-        # Add chorus if present
-        if hymn_data.get('chorus'):
-            lines.append("Chorus:")
-            clean_chorus = self.clean_html_to_text(hymn_data['chorus'])
-            lines.append(clean_chorus)
-            lines.append("")
+        html_content += '</div>'
+        self.hymn_content.setHtml(html_content)
         
-        # Add author and composer
-        if hymn_data.get('author'):
-            author = self.clean_html_to_text(hymn_data['author'])
-            lines.append(f"Author: {author}")
-        if hymn_data.get('composer'):
-            composer = self.clean_html_to_text(hymn_data['composer'])
-            lines.append(f"Composer: {composer}")
-        if hymn_data.get('year'):
-            lines.append(f"Year: {hymn_data['year']}")
-        
-        # Join all lines and display as plain text
-        hymn_text = "\n".join(lines)
-        self.hymn_content.setPlainText(hymn_text)
-        self.statusBar().showMessage(f"Displaying Hymn #{hymn_data.get('number', 'N/A')}")
-    
-    @staticmethod
-    def clean_html_to_text(text: str) -> str:
-        """
-        Convert HTML content to plain text
-        
-        This method:
-        1. Converts common HTML tags to readable text
-        2. Removes all HTML tags
-        3. Decodes HTML entities
-        4. Cleans up whitespace
-        
-        Args:
-            text: Text that may contain HTML tags
-            
-        Returns:
-            Clean plain text without HTML
-        """
-        if not text or not isinstance(text, str):
-            return ""
-        
-        # Convert <br>, <br/>, <br /> to newlines
-        text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
-        
-        # Convert <p> tags to paragraphs with double newlines
-        text = re.sub(r'</p>\s*<p>', '\n\n', text, flags=re.IGNORECASE)
-        text = re.sub(r'</?p>', '\n', text, flags=re.IGNORECASE)
-        
-        # Convert <div> tags to newlines
-        text = re.sub(r'</?div[^>]*>', '\n', text, flags=re.IGNORECASE)
-        
-        # Convert heading tags to text with newlines
-        text = re.sub(r'<h[1-6][^>]*>(.*?)</h[1-6]>', r'\n\1\n', text, flags=re.IGNORECASE)
-        
-        # Remove all other HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
-        
-        # Decode HTML entities
-        text = html.unescape(text)
-        
-        # Clean up excessive whitespace
-        text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)  # Max 2 consecutive newlines
-        text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces to single space
-        text = re.sub(r' *\n *', '\n', text)  # Remove spaces around newlines
-        
-        return text.strip()
-    
-    def set_font_size(self, size: int):
-        """
-        Change the font size of hymn content
-        
-        Args:
-            size: Font size in points (recommended: 10-20)
-        """
-        font = self.hymn_content.font()
-        font.setPointSize(size)
-        self.hymn_content.setFont(font)
-        self.statusBar().showMessage(f"Font size changed to {size}pt")
-    
-    def display_raw_content(self, content: str):
-        """
-        Display raw content from database, automatically cleaning HTML
-        
-        Args:
-            content: Raw content string (may contain HTML)
-        """
-        cleaned = self.clean_html_to_text(content)
-        self.hymn_content.setPlainText(cleaned)
-        self.statusBar().showMessage("Raw content displayed")
-    
-    def load_hymn_from_database(self, hymn_number: int):
-        """
-        Load a hymn from the database and display it
-        
-        Args:
-            hymn_number: The hymn number to load
-        """
-        if not self.db_manager:
-            self.statusBar().showMessage("Database not connected")
-            return
-        
-        # TODO: Implement database query when database is ready
-        # For now, show a placeholder message
-        self.hymn_content.setPlainText(
-            f"Loading Hymn #{hymn_number} from database...\n\n"
-            "Database integration coming soon!"
-        )
-        self.statusBar().showMessage(f"Requested Hymn #{hymn_number}")
+        self.update_hymn_display()
